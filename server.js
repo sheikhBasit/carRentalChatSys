@@ -6,7 +6,7 @@ const { Server } = require("socket.io");
 const cors = require("cors");
 const Message = require("./model/message");
 
-const chatRoutes = require("./route/chatRoutes");
+const chatRoutes = require("./routes/chatRoutes");
 
 const app = express();
 const server = http.createServer(app);
