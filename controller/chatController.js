@@ -27,7 +27,7 @@ exports.getMessages = async (req, res) => {
     }
 };
 // Fetch all chats for a user (both as sender and receiver)
-exports.getAllChats = async (req, res) => {
+exports.getUserChats = async (req, res) => {
     try {
         const { userId } = req.params;
         console.log("Fetching all chats for user:", userId);
@@ -61,4 +61,38 @@ exports.getAllChats = async (req, res) => {
         console.error("Error fetching chats:", error);
         res.status(500).json({ message: "Error fetching chats" });
     }
+};
+
+// Fetch all chats (regardless of user)
+exports.getAllChats = async (req, res) => {
+  try {
+    console.log("Fetching all chats (global)");
+
+    // Fetch all batches
+    const batches = await Batch.find({}).sort({ startTime: -1 });
+
+    // Group messages by chatId
+    const chats = {};
+    batches.forEach((batch) => {
+      if (!chats[batch.chatId]) {
+        chats[batch.chatId] = {
+          chatId: batch.chatId,
+          messages: [],
+        };
+      }
+      chats[batch.chatId].messages.push(...batch.messages);
+    });
+
+    // Convert to array and sort each chat’s messages by timestamp (optional)
+    const chatList = Object.values(chats).map(chat => ({
+      ...chat,
+      messages: chat.messages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp))
+    }));
+
+    console.log("Fetched all chats:", chatList);
+    res.status(200).json(chatList);
+  } catch (error) {
+    console.error("Error fetching all chats:", error);
+    res.status(500).json({ message: "Error fetching all chats" });
+  }
 };
